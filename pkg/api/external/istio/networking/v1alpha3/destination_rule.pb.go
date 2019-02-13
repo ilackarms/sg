@@ -183,7 +183,7 @@ func (TLSSettings_TLSmode) EnumDescriptor() ([]byte, []int) {
 // ```
 type DestinationRule struct {
 	// Status indicates the validation status of this resource.
-	// Status is read-only by clients, and set by gloo during validation
+	// Status is read-only by clients, and set by supergloo during validation
 	Status core.Status `protobuf:"bytes,100,opt,name=status,proto3" json:"status" testdiff:"ignore"`
 	// Metadata contains the object metadata for this resource
 	Metadata core.Metadata `protobuf:"bytes,101,opt,name=metadata,proto3" json:"metadata"`
