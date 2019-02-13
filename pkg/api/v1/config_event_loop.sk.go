@@ -15,13 +15,13 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
 
-type RoutingSyncer interface {
-	Sync(context.Context, *RoutingSnapshot) error
+type ConfigSyncer interface {
+	Sync(context.Context, *ConfigSnapshot) error
 }
 
-type RoutingSyncers []RoutingSyncer
+type ConfigSyncers []ConfigSyncer
 
-func (s RoutingSyncers) Sync(ctx context.Context, snapshot *RoutingSnapshot) error {
+func (s ConfigSyncers) Sync(ctx context.Context, snapshot *ConfigSnapshot) error {
 	var multiErr *multierror.Error
 	for _, syncer := range s {
 		if err := syncer.Sync(ctx, snapshot); err != nil {
@@ -31,23 +31,23 @@ func (s RoutingSyncers) Sync(ctx context.Context, snapshot *RoutingSnapshot) err
 	return multiErr.ErrorOrNil()
 }
 
-type RoutingEventLoop interface {
+type ConfigEventLoop interface {
 	Run(namespaces []string, opts clients.WatchOpts) (<-chan error, error)
 }
 
-type routingEventLoop struct {
-	emitter RoutingEmitter
-	syncer  RoutingSyncer
+type configEventLoop struct {
+	emitter ConfigEmitter
+	syncer  ConfigSyncer
 }
 
-func NewRoutingEventLoop(emitter RoutingEmitter, syncer RoutingSyncer) RoutingEventLoop {
-	return &routingEventLoop{
+func NewConfigEventLoop(emitter ConfigEmitter, syncer ConfigSyncer) ConfigEventLoop {
+	return &configEventLoop{
 		emitter: emitter,
 		syncer:  syncer,
 	}
 }
 
-func (el *routingEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-chan error, error) {
+func (el *configEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-chan error, error) {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "v1.event_loop")
 	logger := contextutils.LoggerFrom(opts.Ctx)
@@ -74,7 +74,7 @@ func (el *routingEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-
 				// cancel any open watches from previous loop
 				cancel()
 
-				ctx, span := trace.StartSpan(opts.Ctx, "routing.sg.solo.io.EventLoopSync")
+				ctx, span := trace.StartSpan(opts.Ctx, "config.sg.solo.io.EventLoopSync")
 				ctx, canc := context.WithCancel(ctx)
 				cancel = canc
 				err := el.syncer.Sync(ctx, snapshot)

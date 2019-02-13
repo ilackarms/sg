@@ -94,19 +94,19 @@ func (client *routingRuleClient) Watch(namespace string, opts clients.WatchOpts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	destinationrulesChan := make(chan RoutingRuleList)
+	routingrulesChan := make(chan RoutingRuleList)
 	go func() {
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				destinationrulesChan <- convertToRoutingRule(resourceList)
+				routingrulesChan <- convertToRoutingRule(resourceList)
 			case <-opts.Ctx.Done():
-				close(destinationrulesChan)
+				close(routingrulesChan)
 				return
 			}
 		}
 	}()
-	return destinationrulesChan, errs, nil
+	return routingrulesChan, errs, nil
 }
 
 func convertToRoutingRule(resources resources.ResourceList) RoutingRuleList {

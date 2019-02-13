@@ -4,9 +4,25 @@
   "docs_dir": "../../docs",
   "version": "v1",
   "resource_groups": {
-    "routing.sg.solo.io": [
+    "config.sg.solo.io": [
+      {
+        "name": "Mesh",
+        "package": "sg.solo.io"
+      },
+      {
+        "name": "MeshGroup",
+        "package": "sg.solo.io"
+      },
+      {
+        "name": "Upstream",
+        "package": "gloo.solo.io"
+      },
       {
         "name": "RoutingRule",
+        "package": "sg.solo.io"
+      },
+      {
+        "name": "TlsSecret",
         "package": "sg.solo.io"
       },
       {

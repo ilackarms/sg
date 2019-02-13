@@ -17,12 +17,12 @@ import (
 	"github.com/solo-io/solo-kit/test/tests/typed"
 )
 
-var _ = Describe("RoutingRuleClient", func() {
+var _ = Describe("TlsSecretClient", func() {
 	var (
 		namespace string
 	)
 	for _, test := range []typed.ResourceClientTester{
-		&typed.KubeRcTester{Crd: RoutingRuleCrd},
+		&typed.KubeRcTester{Crd: TlsSecretCrd},
 		&typed.ConsulRcTester{},
 		&typed.FileRcTester{},
 		&typed.MemoryRcTester{},
@@ -32,7 +32,7 @@ var _ = Describe("RoutingRuleClient", func() {
 	} {
 		Context("resource client backed by "+test.Description(), func() {
 			var (
-				client              RoutingRuleClient
+				client              TlsSecretClient
 				err                 error
 				name1, name2, name3 = "foo" + helpers.RandString(3), "boo" + helpers.RandString(3), "goo" + helpers.RandString(3)
 			)
@@ -40,25 +40,25 @@ var _ = Describe("RoutingRuleClient", func() {
 			BeforeEach(func() {
 				namespace = helpers.RandString(6)
 				factory := test.Setup(namespace)
-				client, err = NewRoutingRuleClient(factory)
+				client, err = NewTlsSecretClient(factory)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			AfterEach(func() {
 				test.Teardown(namespace)
 			})
-			It("CRUDs RoutingRules "+test.Description(), func() {
-				RoutingRuleClientTest(namespace, client, name1, name2, name3)
+			It("CRUDs TlsSecrets "+test.Description(), func() {
+				TlsSecretClientTest(namespace, client, name1, name2, name3)
 			})
 		})
 	}
 })
 
-func RoutingRuleClientTest(namespace string, client RoutingRuleClient, name1, name2, name3 string) {
+func TlsSecretClientTest(namespace string, client TlsSecretClient, name1, name2, name3 string) {
 	err := client.Register()
 	Expect(err).NotTo(HaveOccurred())
 
 	name := name1
-	input := NewRoutingRule(namespace, name)
+	input := NewTlsSecret(namespace, name)
 	input.Metadata.Namespace = namespace
 	r1, err := client.Write(input, clients.WriteOpts{})
 	Expect(err).NotTo(HaveOccurred())
@@ -67,13 +67,15 @@ func RoutingRuleClientTest(namespace string, client RoutingRuleClient, name1, na
 	Expect(err).To(HaveOccurred())
 	Expect(errors.IsExist(err)).To(BeTrue())
 
-	Expect(r1).To(BeAssignableToTypeOf(&RoutingRule{}))
+	Expect(r1).To(BeAssignableToTypeOf(&TlsSecret{}))
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
 	Expect(r1.Metadata.ResourceVersion).NotTo(Equal(input.Metadata.ResourceVersion))
 	Expect(r1.Metadata.Ref()).To(Equal(input.Metadata.Ref()))
-	Expect(r1.Status).To(Equal(input.Status))
-	Expect(r1.TargetMesh).To(Equal(input.TargetMesh))
+	Expect(r1.RootCert).To(Equal(input.RootCert))
+	Expect(r1.CertChain).To(Equal(input.CertChain))
+	Expect(r1.CaCert).To(Equal(input.CaCert))
+	Expect(r1.CaKey).To(Equal(input.CaKey))
 
 	_, err = client.Write(input, clients.WriteOpts{
 		OverwriteExisting: true,
@@ -93,7 +95,7 @@ func RoutingRuleClientTest(namespace string, client RoutingRuleClient, name1, na
 	Expect(errors.IsNotExist(err)).To(BeTrue())
 
 	name = name2
-	input = &RoutingRule{}
+	input = &TlsSecret{}
 
 	input.Metadata = core.Metadata{
 		Name:      name,
@@ -116,12 +118,12 @@ func RoutingRuleClientTest(namespace string, client RoutingRuleClient, name1, na
 	err = client.Delete(namespace, r2.GetMetadata().Name, clients.DeleteOpts{})
 	Expect(err).NotTo(HaveOccurred())
 
-	Eventually(func() RoutingRuleList {
+	Eventually(func() TlsSecretList {
 		list, err = client.List(namespace, clients.ListOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		return list
 	}, time.Second*10).Should(ContainElement(r1))
-	Eventually(func() RoutingRuleList {
+	Eventually(func() TlsSecretList {
 		list, err = client.List(namespace, clients.ListOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		return list
@@ -144,7 +146,7 @@ func RoutingRuleClientTest(namespace string, client RoutingRuleClient, name1, na
 		Expect(err).NotTo(HaveOccurred())
 
 		name = name3
-		input = &RoutingRule{}
+		input = &TlsSecret{}
 		Expect(err).NotTo(HaveOccurred())
 		input.Metadata = core.Metadata{
 			Name:      name,

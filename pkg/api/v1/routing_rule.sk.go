@@ -38,11 +38,12 @@ func (r *RoutingRule) Hash() uint64 {
 	metaCopy.ResourceVersion = ""
 	return hashutils.HashAll(
 		metaCopy,
+		r.TargetMesh,
 	)
 }
 
 type RoutingRuleList []*RoutingRule
-type DestinationrulesByNamespace map[string]RoutingRuleList
+type RoutingrulesByNamespace map[string]RoutingRuleList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list RoutingRuleList) Find(namespace, name string) (*RoutingRule, error) {
@@ -117,25 +118,25 @@ func (list RoutingRuleList) AsInterfaces() []interface{} {
 	return asInterfaces
 }
 
-func (list RoutingRuleList) ByNamespace() DestinationrulesByNamespace {
-	byNamespace := make(DestinationrulesByNamespace)
+func (list RoutingRuleList) ByNamespace() RoutingrulesByNamespace {
+	byNamespace := make(RoutingrulesByNamespace)
 	for _, routingRule := range list {
 		byNamespace.Add(routingRule)
 	}
 	return byNamespace
 }
 
-func (byNamespace DestinationrulesByNamespace) Add(routingRule ...*RoutingRule) {
+func (byNamespace RoutingrulesByNamespace) Add(routingRule ...*RoutingRule) {
 	for _, item := range routingRule {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}
 }
 
-func (byNamespace DestinationrulesByNamespace) Clear(namespace string) {
+func (byNamespace RoutingrulesByNamespace) Clear(namespace string) {
 	delete(byNamespace, namespace)
 }
 
-func (byNamespace DestinationrulesByNamespace) List() RoutingRuleList {
+func (byNamespace RoutingrulesByNamespace) List() RoutingRuleList {
 	var list RoutingRuleList
 	for _, routingRuleList := range byNamespace {
 		list = append(list, routingRuleList...)
@@ -143,7 +144,7 @@ func (byNamespace DestinationrulesByNamespace) List() RoutingRuleList {
 	return list.Sort()
 }
 
-func (byNamespace DestinationrulesByNamespace) Clone() DestinationrulesByNamespace {
+func (byNamespace RoutingrulesByNamespace) Clone() RoutingrulesByNamespace {
 	return byNamespace.List().Clone().ByNamespace()
 }
 
@@ -161,10 +162,10 @@ func (o *RoutingRule) DeepCopyObject() runtime.Object {
 }
 
 var RoutingRuleCrd = crd.NewCrd("sg.solo.io",
-	"destinationrules",
+	"routingrules",
 	"sg.solo.io",
 	"v1",
 	"RoutingRule",
-	"destinationrule",
+	"rr",
 	false,
 	&RoutingRule{})
