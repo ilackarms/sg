@@ -1,0 +1,22 @@
+{
+  "title": "SupaGloo",
+  "name": "sg.solo.io",
+  "docs_dir": "../../docs",
+  "version": "v1",
+  "resource_groups": {
+    "routing.sg.solo.io": [
+      {
+        "name": "RoutingRule",
+        "package": "sg.solo.io"
+      },
+      {
+        "name": "DestinationRule",
+        "package": "istio.networking.v1alpha3"
+      },
+      {
+        "name": "VirtualService",
+        "package": "istio.networking.v1alpha3"
+      }
+    ]
+  }
+}

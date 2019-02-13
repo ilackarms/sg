@@ -4,6 +4,8 @@ package main
 This file is used to import external api protos
  */
 
+//go:generate go run import_protos.go
+
 import (
 	"fmt"
 	"github.com/solo-io/go-utils/errors"
@@ -43,6 +45,10 @@ var protosToImport = []importedProto{
 	},
 	{
 		file:       "https://raw.githubusercontent.com/istio/api/056eb85d96f09441775d79283c149d93fcbd0982/networking/v1alpha3/sidecar.proto",
+		importPath: "github.com/solo-io/sg/pkg/api/external/istio/networking/v1alpha3",
+	},
+	{
+		file:       "https://raw.githubusercontent.com/istio/api/056eb85d96f09441775d79283c149d93fcbd0982/networking/v1alpha3/gateway.proto",
 		importPath: "github.com/solo-io/sg/pkg/api/external/istio/networking/v1alpha3",
 	},
 }
@@ -129,6 +135,8 @@ func importIstioProto(file, importPath string, skTypes []soloKitType, out io.Wri
 var goPackageStatementRegex = regexp.MustCompile(`option go_package.*=.*;`)
 
 func replaceGoPackage(in, importPath string) string {
+	in = strings.Replace(in, `import "gogoproto/gogo.proto";`, "", -1)
+	in = strings.Replace(in, `option (gogoproto.equal_all) = true;`, "", -1)
 	return goPackageStatementRegex.ReplaceAllString(in, fmt.Sprintf("option go_package = \"%v\";\n\n%v", importPath, soloKitImports))
 }
 
